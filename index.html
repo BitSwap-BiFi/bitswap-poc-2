@@ -139,6 +139,35 @@ async function getLiquidityPoolValue() {
     return 0; // Return 0 in case of an error
   }
 }
+let liquidityPool = {
+  btcBalance: 1000, // Initial BTC balance in the pool
+  usdtBalance: 35000, // Initial USDT balance in the pool
+};
+
+// Function to handle the swap button click event
+function handleSwap() {
+  const btcInput = document.getElementById('btcInput');
+  const usdtInput = document.getElementById('usdtInput');
+
+  const btcAmount = parseFloat(btcInput.value);
+  const usdtAmount = parseFloat(usdtInput.value);
+
+  if (isNaN(btcAmount) || isNaN(usdtAmount)) {
+    alert('Please enter valid amounts.');
+    return;
+  }
+
+  // Calculate new BTC and USDT amounts based on the AMM formula x * y = k
+  const k = liquidityPool.btcBalance * liquidityPool.usdtBalance;
+  const newBtcBalance = liquidityPool.btcBalance + btcAmount;
+  const newUsdtBalance = k / newBtcBalance;
+
+  liquidityPool.btcBalance = newBtcBalance;
+  liquidityPool.usdtBalance = newUsdtBalance;
+
+// Add event listener to the swap button
+const swapButton = document.getElementById('swapButton');
+swapButton.addEventListener('click', handleSwap);
 
 // Function to handle the swap button click event
 async function handleSwap() {
