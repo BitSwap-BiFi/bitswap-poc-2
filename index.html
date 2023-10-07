@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bitswap</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .logo {
+      font-size: 30px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .button {
+      background-color: #f7dc7c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease-in-out;
+    }
+
+    .button:hover {
+      background-color: #f7dc7c;
+    }
+
+    .form-container {
+      background-color: #1f1f1f;
+      border-radius: 4px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .form-header {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .form-input {
+      border: none;
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    .form-submit {
+      background-color: #f7dc7c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease-in-out;
+    }
+
+    .form-submit:hover {
+      background-color: #ff0055;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">Bitswap</div>
+    <button class="button">Connect Wallet</button>
+    <script>
+    let bitmask = new bitmask();
+    alert("connect wallet")
+    <script>
+    <script src="bitswap-poc/bitmask.js"></script>
+  </div>
+  <div class="form-container">
+    <div class="form-header">Swap</div>
+    <div class="form-row">
+      <div class="form-label">From:</div>
+      <input id="btcInput" class="form-input" type="text" placeholder="0.1 BTC">
+      <button class="form-input">select token</button>
+    </div>
+    <div class="form-row">
+      <div class="form-label">To:</div>
+      <input id="usdtInput" class="form-input" type="text" placeholder="2000 USDT">
+    </div>
+    <button id="swapButton" class="form-submit">Swap</button>
+  </div>
+  <div style="margin-top: 20px; font-size: 14px; text-align: center;">
+    <p><em>Disclaimer: Alpha software - Use at own risk</em></p>
+  </div>
+  <script>
+// Function to get the current liquidity pool value (k)
+async function getLiquidityPoolValue() {
+  try {
+    const response = await fetch('https://api.bitfinex.com/v2/auth/r/orders/tBTCUSD/hist', {
+      method: 'POST',
+      body: JSON.stringify({}),
+      headers: {
+        /* auth headers */
+      },
+    });
+
+    const orders = await response.json();
+    
+    // Calculate k (total value in the liquidity pool) by summing up all orders
+    let k = 0;
+    orders.forEach(order => {
+      k += Math.abs(order[2] * order[3]); // order[2] is amount, order[3] is price
+    });
+
+    return k;
+  } catch (error) {
+    console.error('Error fetching liquidity pool:', error);
+    return 0; // Return 0 in case of an error
+  }
+}
+
+// Function to handle the swap button click event
+async function handleSwap() {
+  const btcInput = document.getElementById('btcInput');
+  const usdtInput = document.getElementById('usdtInput');
+
+  const btcAmount = parseFloat(btcInput.value);
+  const usdtAmount = parseFloat(usdtInput.value);
+
+  const liquidityPoolValue = await getLiquidityPoolValue();
+
+  if (isNaN(liquidityPoolValue) || liquidityPoolValue <= 0) {
+    alert('Unable to fetch liquidity pool value. Please try again later.');
+    return;
+  }
+
+  // Calculate new BTC and USDT amounts based on the AMM formula x * y = k
+  const newBtcAmount = (btcAmount * liquidityPoolValue) / (usdtAmount + liquidityPoolValue);
+  const newUsdtAmount = (usdtAmount * liquidityPoolValue) / (btcAmount + liquidityPoolValue);
+
+  btcInput.value = newBtcAmount.toFixed(8); // Display the calculated BTC amount
+  usdtInput.value = newUsdtAmount.toFixed(2); // Display the calculated USDT amount
+}
+
+// Add event listener to the swap button
+const swapButton = document.getElementById('swapButton');
+swapButton.addEventListener('click', handleSwap);
+ </script>
+</body>
+</html>
